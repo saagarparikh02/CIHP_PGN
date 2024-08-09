@@ -23,9 +23,13 @@ argp = argparse.ArgumentParser(description="Inference pipeline")
 argp.add_argument('-i',
                   '--directory',
                   type=str, help='Path of the input dir',
-                  default='./datasets/images')
+                  default='../images')
 argp.add_argument('-o',
                   '--output',
+                  type=str, help='Path of the input dir',
+                  default='../output')
+argp.add_argument('-ao',
+                  '--all-outputs',
                   type=str, help='Path of the input dir',
                   default='./datasets/output')
 
@@ -36,7 +40,7 @@ for i in glob(os.path.join(args.directory, '**'), recursive=True):
     if os.path.isfile(i):
         image_list_inp.append(i)
 # print(image_list)
-image_list_inp = image_list_inp[:5]
+# image_list_inp = image_list_inp[:5]
 # sys.exit(2)
 N_CLASSES = 20
 NUM_STEPS = len(image_list_inp)
@@ -187,12 +191,12 @@ def main():
     threads = tf.train.start_queue_runners(coord=coord, sess=sess)
 
     # evaluate prosessing
-    parsing_dir = os.path.join(args.output, 'cihp_parsing_maps')
-    if not os.path.exists(parsing_dir):
-        os.makedirs(parsing_dir)
-    edge_dir = os.path.join(args.output, 'cihp_edge_maps')
-    if not os.path.exists(edge_dir):
-        os.makedirs(edge_dir)
+    parsing_dir = os.path.join(args.all_outputs, 'cihp_parsing_maps')
+    edge_dir = os.path.join(args.all_outputs, 'cihp_edge_maps')
+    parsing_dir2 = os.path.join(args.output, "image-parse-v3")
+    os.makedirs(parsing_dir, exist_ok=True)
+    os.makedirs(parsing_dir2, exist_ok=True)
+    os.makedirs(edge_dir, exist_ok=True)
     # Iterate over training steps.
     for step in range(NUM_STEPS):
         # if step > 100:
@@ -211,6 +215,7 @@ def main():
         # print("here")
         parsing_im.save('{}/{}_vis.png'.format(parsing_dir, img_id))
         cv2.imwrite('{}/{}.png'.format(parsing_dir, img_id), parsing_[0,:,:,0])
+        cv2.imwrite('{}/{}.png'.format(parsing_dir2, img_id), parsing_[0,:,:,0])
         # sio.savemat('{}/{}.mat'.format(parsing_dir, img_id), {'data': scores[0,:,:]})
         
         cv2.imwrite('{}/{}.png'.format(edge_dir, img_id), edge_[0,:,:,0] * 255)
